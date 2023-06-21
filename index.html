@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Managment System</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
+    integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer"
+  />
+</head>
+<body>
+    <div class="container">
+        <h1 class="fontsizechange">📚 Library Managment System</h1>
+        <form action="data-taking">
+            <label class="fontweightandsize" for="book-name">Enter Book Name</label><br>
+            <input type="text" name="book-name" placeholder="Enter Book Name" id="book-name" class="universal fontweightandsize2"> <br>
+
+            <label class="fontweightandsize" for="author-name">Enter Author Name</label><br>
+            <input type="text" name="author-name" placeholder="Enter Author Name" id="author-name" class="universal fontweightandsize2"><br>
+
+            <label class="fontweightandsize" for="isbn">#ISBN </label><br>
+            <input type="text" name="isbn" id="isbn" placeholder="Enter Unique ISBN#code" class="universal fontweightandsize2"><br>
+            
+            <button class="universal fontweightandsize" id="buttontoclick">Add Book</button><br>
+        </form>
+        <table>
+            <thead>
+                <tr class="fontweightandsize2">
+                    <th>Book Name</th>
+                    <th>Author Name</th>
+                    <th>#ISBN</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="listofbooks" class="tablerowdata"></tbody>
+            <hr>
+        </table>
+        <hr>
+    </div>
+    <script src="javas.js"></script>
+</body>
+</html>
