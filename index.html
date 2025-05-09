@@ -1,46 +1,282 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library Managment System</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css"
-    integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g=="
-    crossorigin="anonymous"
-    referrerpolicy="no-referrer"
-  />
+  <meta charset="UTF-8">
+  <title>Library Management System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      margin: 0;
+      background-image: url('lib22.jpg');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+      color: #ffff;
+    }
+    #content {
+      background: rgba(120, 119, 119, 0.9);
+      padding: 20px;
+      border-radius: 10px;
+      margin: 30px;
+      box-shadow: 0 0 10px #5d5c5c;
+    }
+    button {
+      margin: 5px;
+      padding: 10px 20px;
+      cursor: pointer;
+      border: none;
+      background-color: #5D3A00;
+      color: white;
+      border-radius: 5px;
+    }
+    input, select {
+      margin: 5px 0;
+      padding: 10px;
+      width: 100%;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    h2 { margin-top: 0; }
+    .book-card {
+      background: #f9f9f9;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 10px;
+      box-shadow: 0 0 5px #aaa;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="fontsizechange">📚 Library Managment System</h1>
-        <form action="data-taking">
-            <label class="fontweightandsize" for="book-name">Enter Book Name</label><br>
-            <input type="text" name="book-name" placeholder="Enter Book Name" id="book-name" class="universal fontweightandsize2"> <br>
 
-            <label class="fontweightandsize" for="author-name">Enter Author Name</label><br>
-            <input type="text" name="author-name" placeholder="Enter Author Name" id="author-name" class="universal fontweightandsize2"><br>
+  <h1>📚 Library Management System</h1>
 
-            <label class="fontweightandsize" for="isbn">#ISBN </label><br>
-            <input type="text" name="isbn" id="isbn" placeholder="Enter Unique ISBN#code" class="universal fontweightandsize2"><br>
-            
-            <button class="universal fontweightandsize" id="buttontoclick">Add Book</button><br>
-        </form>
-        <table>
-            <thead>
-                <tr class="fontweightandsize2">
-                    <th>Book Name</th>
-                    <th>Author Name</th>
-                    <th>#ISBN</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody id="listofbooks" class="tablerowdata"></tbody>
-            <hr>
-        </table>
-        <hr>
-    </div>
-    <script src="javas.js"></script>
+  <div id="content"></div>
+
+  <script>
+    // Initialize Local Storage
+    if (!localStorage.getItem('users')) {
+      localStorage.setItem('users', JSON.stringify([
+        { username: 'admin', password: 'admin123', role: 'admin' },
+        { username: 'librarian', password: 'librarian123', role: 'librarian' },
+        { username: 'user', password: 'user123', role: 'user' }
+      ]));
+    }
+    if (!localStorage.getItem('books')) {
+      localStorage.setItem('books', JSON.stringify([]));
+    }
+    if (!localStorage.getItem('borrowedBooks')) {
+      localStorage.setItem('borrowedBooks', JSON.stringify([]));
+    }
+
+    let currentUser = null;
+
+    function showLogin() {
+      document.getElementById('content').innerHTML = `
+        <h2>Login</h2>
+        <input id="username" placeholder="Username" />
+        <input id="password" type="password" placeholder="Password" />
+        <button onclick="login()">Login</button>
+      `;
+    }
+
+    function login() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const users = JSON.parse(localStorage.getItem('users'));
+
+      const user = users.find(u => u.username === username && u.password === password);
+
+      if (user) {
+        currentUser = user;
+        alert(`Welcome ${user.username}!`);
+        loadDashboard(user.role);
+      } else {
+        alert('Invalid username or password.');
+      }
+    }
+
+    function loadDashboard(role) {
+      if (role === 'admin') {
+        showAdminDashboard();
+      } else if (role === 'librarian') {
+        showLibrarianDashboard();
+      } else {
+        showUserDashboard();
+      }
+    }
+
+    // Admin Dashboard
+    function showAdminDashboard() {
+      document.getElementById('content').innerHTML = `
+        <h2>👑 Admin Dashboard</h2>
+        <button onclick="showAddUser()">Add User</button>
+        <button onclick="showDeleteUser()">Delete User</button>
+        <button onclick="logout()">Logout</button>
+      `;
+    }
+
+    function showAddUser() {
+      document.getElementById('content').innerHTML = `
+        <h2>Add New User</h2>
+        <input id="newUsername" placeholder="Username" />
+        <input id="newPassword" placeholder="Password" />
+        <select id="newRole">
+          <option value="admin">Admin</option>
+          <option value="librarian">Librarian</option>
+          <option value="user">User</option>
+        </select>
+        <button onclick="addUser()">Add User</button>
+        <button onclick="showAdminDashboard()">Back</button>
+      `;
+    }
+
+    function addUser() {
+      const username = document.getElementById('newUsername').value.trim();
+      const password = document.getElementById('newPassword').value.trim();
+      const role = document.getElementById('newRole').value;
+
+      if (!username || !password) {
+        alert('Please fill all fields');
+        return;
+      }
+
+      const users = JSON.parse(localStorage.getItem('users'));
+      if (users.find(u => u.username === username)) {
+        alert('User already exists!');
+        return;
+      }
+
+      users.push({ username, password, role });
+      localStorage.setItem('users', JSON.stringify(users));
+      alert('User added successfully!');
+      showAdminDashboard();
+    }
+
+    function showDeleteUser() {
+      const users = JSON.parse(localStorage.getItem('users')).filter(u => u.username !== 'admin');
+      let userOptions = users.map(u => `<option value="${u.username}">${u.username} (${u.role})</option>`).join('');
+
+      document.getElementById('content').innerHTML = `
+        <h2>Delete User</h2>
+        <select id="deleteUsername">${userOptions}</select>
+        <button onclick="deleteUser()">Delete</button>
+        <button onclick="showAdminDashboard()">Back</button>
+      `;
+    }
+
+    function deleteUser() {
+      const username = document.getElementById('deleteUsername').value;
+      let users = JSON.parse(localStorage.getItem('users'));
+      users = users.filter(u => u.username !== username);
+      localStorage.setItem('users', JSON.stringify(users));
+      alert('User deleted!');
+      showAdminDashboard();
+    }
+
+    // Librarian Dashboard
+    function showLibrarianDashboard() {
+      document.getElementById('content').innerHTML = `
+        <h2>📖 Librarian Dashboard</h2>
+        <button onclick="showAddBook()">Add Book</button>
+        <button onclick="showDeleteBook()">Delete Book</button>
+        <button onclick="logout()">Logout</button>
+      `;
+    }
+
+    function showAddBook() {
+      document.getElementById('content').innerHTML = `
+        <h2>Add New Book</h2>
+        <input id="title" placeholder="Book Title" />
+        <input id="author" placeholder="Author" />
+        <button onclick="addBook()">Add Book</button>
+        <button onclick="showLibrarianDashboard()">Back</button>
+      `;
+    }
+
+    function addBook() {
+      const title = document.getElementById('title').value.trim();
+      const author = document.getElementById('author').value.trim();
+
+      if (!title || !author) {
+        alert('Fill all fields!');
+        return;
+      }
+
+      const books = JSON.parse(localStorage.getItem('books'));
+      books.push({ title, author, available: true });
+      localStorage.setItem('books', JSON.stringify(books));
+      alert('Book added successfully!');
+      showLibrarianDashboard();
+    }
+
+    function showDeleteBook() {
+      const books = JSON.parse(localStorage.getItem('books'));
+      let bookOptions = books.map((b, i) => `<option value="${i}">${b.title} (${b.author})</option>`).join('');
+
+      document.getElementById('content').innerHTML = `
+        <h2>Delete Book</h2>
+        <select id="deleteBook">${bookOptions}</select>
+        <button onclick="deleteBook()">Delete</button>
+        <button onclick="showLibrarianDashboard()">Back</button>
+      `;
+    }
+
+    function deleteBook() {
+      const index = document.getElementById('deleteBook').value;
+      const books = JSON.parse(localStorage.getItem('books'));
+      books.splice(index, 1);
+      localStorage.setItem('books', JSON.stringify(books));
+      alert('Book deleted!');
+      showLibrarianDashboard();
+    }
+
+    // User Dashboard
+    function showUserDashboard() {
+      const books = JSON.parse(localStorage.getItem('books'));
+      let bookList = books.map((b, i) => `
+        <div class="book-card">
+          <h3>${b.title}</h3>
+          <p>by ${b.author}</p>
+          ${b.available ? `<button onclick="borrowBook(${i})">Borrow</button>` : `<b>Borrowed</b>`}
+        </div>
+      `).join('');
+
+      document.getElementById('content').innerHTML = `
+        <h2>👤 User Dashboard</h2>
+        ${bookList}
+        <button onclick="logout()">Logout</button>
+      `;
+    }
+
+    function borrowBook(index) {
+      const books = JSON.parse(localStorage.getItem('books'));
+
+      if (!books[index].available) {
+        alert('Book already borrowed!');
+        return;
+      }
+
+      books[index].available = false;
+      localStorage.setItem('books', JSON.stringify(books));
+
+      const borrowedBooks = JSON.parse(localStorage.getItem('borrowedBooks'));
+      borrowedBooks.push({ username: currentUser.username, book: books[index] });
+      localStorage.setItem('borrowedBooks', JSON.stringify(borrowedBooks));
+
+      alert('You borrowed the book!');
+      showUserDashboard();
+    }
+
+    function logout() {
+      currentUser = null;
+      showLogin();
+    }
+
+    // Load login page initially
+    showLogin();
+  </script>
+
 </body>
 </html>
